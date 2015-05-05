@@ -851,7 +851,7 @@ FANN_EXTERNAL struct fann *FANN_API fann_create_shortcut_array(unsigned int num_
 FANN_EXTERNAL fann_type *FANN_API fann_run(struct fann * ann, fann_type * input)
 {
 	struct fann_neuron *neuron_it, *last_neuron, *neurons, **neuron_pointers;
-	unsigned int i, num_connections, num_input, num_output;
+	unsigned int i, num_connections, num_input, num_output, counter;
 	fann_type neuron_sum, *output;
 	fann_type *weights;
 	struct fann_layer *layer_it, *last_layer;
@@ -862,7 +862,7 @@ FANN_EXTERNAL fann_type *FANN_API fann_run(struct fann * ann, fann_type * input)
 	/* store some variabels local for fast access */
 	struct fann_neuron *first_neuron = ann->first_layer->first_neuron;
 
-#ifdef FIXEDFANN
+	#ifdef FIXEDFANN
 	int multiplier = ann->multiplier;
 	unsigned int decimal_point = ann->decimal_point;
 
@@ -872,30 +872,30 @@ FANN_EXTERNAL fann_type *FANN_API fann_run(struct fann * ann, fann_type * input)
 
 	fann_type last_steepness = 0;
 	unsigned int last_activation_function = 0;
-#else
+	#else
 	fann_type max_sum = 0;
-#endif
-
+	#endif
+	counter = 0;
 	/* first set the input */
 	num_input = ann->num_input;
 	for(i = 0; i != num_input; i++)
 	{
-#ifdef FIXEDFANN
+	#ifdef FIXEDFANN
 		if(fann_abs(input[i]) > multiplier)
 		{
 			printf
 				("Warning input number %d is out of range -%d - %d with value %d, integer overflow may occur.\n",
-				 i, multiplier, multiplier, input[i]);
+				i, multiplier, multiplier, input[i]);
 		}
-#endif
+	#endif
 		first_neuron[i].value = input[i];
 	}
 	/* Set the bias neuron in the input layer */
-#ifdef FIXEDFANN
+	#ifdef FIXEDFANN
 	(ann->first_layer->last_neuron - 1)->value = multiplier;
-#else
+	#else
 	(ann->first_layer->last_neuron - 1)->value = 1;
-#endif
+	#endif
 
 	last_layer = ann->last_layer;
 	for(layer_it = ann->first_layer + 1; layer_it != last_layer; layer_it++)
@@ -903,14 +903,15 @@ FANN_EXTERNAL fann_type *FANN_API fann_run(struct fann * ann, fann_type * input)
 		last_neuron = layer_it->last_neuron;
 		for(neuron_it = layer_it->first_neuron; neuron_it != last_neuron; neuron_it++)
 		{
+
 			if(neuron_it->first_con == neuron_it->last_con)
 			{
 				/* bias neurons */
-#ifdef FIXEDFANN
+	#ifdef FIXEDFANN
 				neuron_it->value = multiplier;
-#else
+	#else
 				neuron_it->value = 1;
-#endif
+	#endif
 				continue;
 			}
 
@@ -947,7 +948,7 @@ FANN_EXTERNAL fann_type *FANN_API fann_run(struct fann * ann, fann_type * input)
 					case 0:
 						break;
 				}
-
+				counter++;
 				for(; i != num_connections; i += 4)
 				{
 					neuron_sum +=
@@ -959,17 +960,17 @@ FANN_EXTERNAL fann_type *FANN_API fann_run(struct fann * ann, fann_type * input)
 				/* unrolled loop end */
 
 				/*
-				 * for(i = 0;i != num_connections; i++){
-				 * printf("%f += %f*%f, ", neuron_sum, weights[i], neurons[i].value);
-				 * neuron_sum += fann_mult(weights[i], neurons[i].value);
-				 * }
-				 */
+				* for(i = 0;i != num_connections; i++){
+				* printf("%f += %f*%f, ", neuron_sum, weights[i], neurons[i].value);
+				* neuron_sum += fann_mult(weights[i], neurons[i].value);
+				* }
+				*/
 			}
 			else
 			{
 				if (activation_function != FANN_MAXPOOLING){
 					neuron_pointers = ann->connections + neuron_it->first_con;
-
+					counter++;
 					i = num_connections & 3;	/* same as modulo 4 */
 					switch (i)
 					{
@@ -999,7 +1000,7 @@ FANN_EXTERNAL fann_type *FANN_API fann_run(struct fann * ann, fann_type * input)
 				}
 			}
 
-#ifdef FIXEDFANN
+	#ifdef FIXEDFANN
 			neuron_it->sum = fann_mult(steepness, neuron_sum);
 
 			if(activation_function != last_activation_function || steepness != last_steepness)
@@ -1047,13 +1048,13 @@ FANN_EXTERNAL fann_type *FANN_API fann_run(struct fann * ann, fann_type * input)
 				case FANN_SIGMOID_STEPWISE:
 					neuron_it->value =
 						(fann_type) fann_stepwise(v1, v2, v3, v4, v5, v6, r1, r2, r3, r4, r5, r6, 0,
-												  multiplier, neuron_sum);
+													multiplier, neuron_sum);
 					break;
 				case FANN_SIGMOID_SYMMETRIC:
 				case FANN_SIGMOID_SYMMETRIC_STEPWISE:
 					neuron_it->value =
 						(fann_type) fann_stepwise(v1, v2, v3, v4, v5, v6, r1, r2, r3, r4, r5, r6,
-												  -multiplier, multiplier, neuron_sum);
+													-multiplier, multiplier, neuron_sum);
 					break;
 				case FANN_THRESHOLD:
 					neuron_it->value = (fann_type) ((neuron_sum < 0) ? 0 : multiplier);
@@ -1085,7 +1086,7 @@ FANN_EXTERNAL fann_type *FANN_API fann_run(struct fann * ann, fann_type * input)
 			}
 			last_steepness = steepness;
 			last_activation_function = activation_function;
-#else
+	#else
 			if (activation_function != FANN_MAXPOOLING){
 				neuron_sum = fann_mult(steepness, neuron_sum);
 
@@ -1098,7 +1099,7 @@ FANN_EXTERNAL fann_type *FANN_API fann_run(struct fann * ann, fann_type * input)
 				neuron_it->sum = neuron_sum;
 			}
 			fann_activation_switch(activation_function, neuron_sum, neuron_it->value);
-#endif
+	#endif
 		}
 	}
 
