@@ -85,6 +85,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #define fann_activation_switch(activation_function, value, result) \
 switch(activation_function) \
 { \
+	case FANN_MAXPOOLING: \
 	case FANN_LINEAR: \
 		result = (fann_type)value; \
         break; \
