@@ -1123,6 +1123,7 @@ FANN_EXTERNAL void FANN_API fann_destroy(struct fann *ann)
 	fann_safe_free(ann->first_layer->first_neuron);
 	fann_safe_free(ann->first_layer);
 	fann_safe_free(ann->output);
+	fann_safe_free(ann->connections_to_weights);
 	fann_safe_free(ann->train_errors);
 	fann_safe_free(ann->train_slopes);
 	fann_safe_free(ann->prev_train_slopes);
