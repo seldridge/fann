@@ -26,7 +26,7 @@ local: $(TARGETS_LOCAL)
 	$(GCC) -O3 -DFIXEDFANN $< -o $@ -L/usr/local/lib -lfixedfann -lm -g -Wall
 
 clean:
-	rm -f $(TARGETS) $(DEBUG_TARGETS) xor_fixed.data *.net *~ *.obj *.exe *.tds noscale.txt withscale.txt scale_test_results.txt
+	rm -f $(TARGETS) $(DEBUG_TARGETS) $(TARGETS_LOCAL) xor_fixed.data *.net *~ *.obj *.exe *.tds noscale.txt withscale.txt scale_test_results.txt
 
 runtest: $(TARGETS)
 	@echo
