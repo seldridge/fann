@@ -5,8 +5,19 @@ GCC=gcc
 
 TARGETS = xor_train xor_test xor_test_fixed simple_train steepness_train simple_test robot mushroom cascade_train scaling_test scaling_train simple_train_conv test_setup_speed_conv
 DEBUG_TARGETS = xor_train_debug xor_test_debug xor_test_fixed_debug cascade_train_debug
+TARGETS_LOCAL = $(TARGETS:%=%_local)
 
 all: $(TARGETS)
+
+# "local" targets use the locally installed version of FANN in
+# "../src".
+local: $(TARGETS_LOCAL)
+
+%_fixed_local: %.c Makefile
+	$(GCC) -O0 -g -DFIXEDFANN -I ../src/include $< -Wl,-R$(shell readlink -f ../src) -L../src -lfixedfann -lm -g -Wall -o $@
+
+%_local: %.c Makefile
+	$(GCC) -O0 -g -I ../src/include $< -Wl,-R$(shell readlink -f ../src) -L../src -lfann -lm -o $@
 
 %: %.c Makefile
 	$(GCC) -O3 $< -o $@ -L/usr/local/lib -lfann -lm -g -Wall -O0
